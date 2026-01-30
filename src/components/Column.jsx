@@ -32,7 +32,6 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
   const [newGroupName, setNewGroupName] = useState('');
   const [draggedCardForGrouping, setDraggedCardForGrouping] = useState(null);
   const columnRef = useRef(null);
-  const dragPreviewRef = useRef(null);
 
   // Update local title when columnData changes (from Firebase)
   useEffect(() => {
