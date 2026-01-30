@@ -1,4 +1,4 @@
-import { ref, onValue, off, set, remove } from 'firebase/database';
+import { ref, onValue, off, set, remove, update } from 'firebase/database';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { database, auth, signInAnonymously, get } from '../utils/firebase';
 import { generateId } from '../utils/helpers';
@@ -900,26 +900,46 @@ export const BoardProvider = ({ children }) => {
       });
   };
 
-  // Reorder a column by swapping its order with another column
+  /**
+   * Reorder a column by swapping its order with another column
+   * 
+   * @param {string} draggedColumnId - The ID of the column being dragged
+   * @param {string} targetColumnId - The ID of the column being dropped onto
+   * @returns {Promise} - A promise that resolves when the reordering is complete
+   * 
+   * This function reorders columns by:
+   * 1. Finding the visual positions of both columns based on their order property
+   * 2. Calculating new order values for all affected columns
+   * 3. Persisting the new order values to Firebase in a single batch update
+   */
   const reorderColumn = (draggedColumnId, targetColumnId) => {
     if (!boardId || !draggedColumnId || !targetColumnId || draggedColumnId === targetColumnId) {
-      return;
+      return Promise.resolve();
     }
 
-    // Get current columns and their order
-    const columnEntries = Object.entries(columns || {});
+    // Get current columns sorted by their order (same as visual display order)
+    const columnEntries = Object.entries(columns || {}).sort((a, b) => {
+      const orderA = a[1].order !== undefined ? a[1].order : 999999;
+      const orderB = b[1].order !== undefined ? b[1].order : 999999;
+      
+      if (orderA === orderB) {
+        return a[0].localeCompare(b[0]); // Fall back to ID for consistency
+      }
+      return orderA - orderB;
+    });
+
     const draggedIndex = columnEntries.findIndex(([id]) => id === draggedColumnId);
     const targetIndex = columnEntries.findIndex(([id]) => id === targetColumnId);
 
     if (draggedIndex === -1 || targetIndex === -1) {
-      return;
+      return Promise.resolve();
     }
 
-    // Create new order for all columns
-    const promises = [];
+    // Build multi-path update object for atomic Firebase update
+    const updates = {};
     
     // Determine the new order values
-    columnEntries.forEach(([columnId, columnData], index) => {
+    columnEntries.forEach(([columnId, _columnData], index) => {
       let newOrder;
       
       if (columnId === draggedColumnId) {
@@ -941,14 +961,16 @@ export const BoardProvider = ({ children }) => {
         }
       }
 
-      // Update order in Firebase if it has changed
-      if ((columnData.order || 0) !== newOrder) {
-        const orderRef = ref(database, `boards/${boardId}/columns/${columnId}/order`);
-        promises.push(set(orderRef, newOrder));
+      // Add to multi-path update if order changed
+      const currentOrder = columnEntries[index][1].order !== undefined ? columnEntries[index][1].order : index;
+      if (currentOrder !== newOrder) {
+        updates[`boards/${boardId}/columns/${columnId}/order`] = newOrder;
       }
     });
 
-    return Promise.all(promises)
+    // Perform atomic multi-path update
+    const dbRef = ref(database, '/');
+    return update(dbRef, updates)
       .then(() => {
         console.log(`Column ${draggedColumnId} reordered to position of ${targetColumnId}`);
       })

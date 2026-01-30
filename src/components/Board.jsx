@@ -456,9 +456,12 @@ function Board({ showNotification }) {
       return;
     }
 
-    // Calculate the next order value (max order + 1)
-    const maxOrder = Object.values(columns || {}).reduce((max, col) => {
-      const colOrder = col.order !== undefined ? col.order : 0;
+    // Calculate the next order value
+    // For columns without order property (legacy), we count their array position
+    const columnEntries = Object.entries(columns || {});
+    const maxOrder = columnEntries.reduce((max, [_id, col], index) => {
+      // Use explicit order if available, otherwise use array index for legacy columns
+      const colOrder = col.order !== undefined ? col.order : index;
       return Math.max(max, colOrder);
     }, -1);
     const nextOrder = maxOrder + 1;

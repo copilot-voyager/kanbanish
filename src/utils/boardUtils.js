@@ -7,7 +7,8 @@ import { generateId } from './helpers';
  *
  * @param {string} boardId - The ID of the board
  * @param {string} title - The title of the column (default: 'New Column')
- * @param {number} order - The order of the column (optional)
+ * @param {number} order - The order position of the column. Defaults to 0 if not specified.
+ *                         When adding columns, pass the highest current order + 1 to append at the end.
  * @returns {Promise} - A promise that resolves when the column is added
  */
 export function addColumn(boardId, title = 'New Column', order = 0) {

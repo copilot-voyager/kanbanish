@@ -86,8 +86,13 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
     accept: 'COLUMN',
     drop: (item) => {
       if (item.columnId !== columnId && reorderColumn) {
-        reorderColumn(item.columnId, columnId);
-        showNotification('Column reordered');
+        reorderColumn(item.columnId, columnId)
+          .then(() => {
+            showNotification('Column reordered');
+          })
+          .catch(() => {
+            showNotification('Failed to reorder column');
+          });
       }
     },
     collect: monitor => ({
@@ -328,7 +333,6 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
       <div 
         ref={drag}
         className="column-header"
-        style={{ cursor: 'move' }}
       >
         {isEditing ? (
           <input
