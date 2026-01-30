@@ -7,9 +7,10 @@ import { generateId } from './helpers';
  *
  * @param {string} boardId - The ID of the board
  * @param {string} title - The title of the column (default: 'New Column')
+ * @param {number} order - The order of the column (optional)
  * @returns {Promise} - A promise that resolves when the column is added
  */
-export function addColumn(boardId, title = 'New Column') {
+export function addColumn(boardId, title = 'New Column', order = 0) {
   if (!boardId) {
     return Promise.reject(new Error('Board ID is required'));
   }
@@ -17,6 +18,7 @@ export function addColumn(boardId, title = 'New Column') {
   const columnId = generateId();
   const columnData = {
     title,
+    order,
     cards: {}
   };
 

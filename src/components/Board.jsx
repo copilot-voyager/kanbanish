@@ -272,12 +272,18 @@ const ActionButtons = ({
 const ColumnsContainer = ({ columns, sortByVotes, showNotification, addNewColumn }) => {
   const { retrospectiveMode, workflowPhase } = useBoardContext();
 
-  // Get columns sorted by their IDs to maintain consistent order
+  // Get columns sorted by their order property (or ID if order not set)
   const getSortedColumns = () => {
-    // The column IDs are prefixed with alphabet characters (a_, b_, etc.)
-    // to ensure they maintain their original order regardless of title changes
+    // Sort by order property if it exists, otherwise fall back to ID sorting
     return Object.entries(columns || {}).sort((a, b) => {
-      return a[0].localeCompare(b[0]); // Sort by column ID
+      const orderA = a[1].order !== undefined ? a[1].order : 999999;
+      const orderB = b[1].order !== undefined ? b[1].order : 999999;
+      
+      // If orders are equal, fall back to ID comparison for consistency
+      if (orderA === orderB) {
+        return a[0].localeCompare(b[0]);
+      }
+      return orderA - orderB;
     });
   };
 
@@ -450,7 +456,14 @@ function Board({ showNotification }) {
       return;
     }
 
-    addColumn(boardId)
+    // Calculate the next order value (max order + 1)
+    const maxOrder = Object.values(columns || {}).reduce((max, col) => {
+      const colOrder = col.order !== undefined ? col.order : 0;
+      return Math.max(max, colOrder);
+    }, -1);
+    const nextOrder = maxOrder + 1;
+
+    addColumn(boardId, 'New Column', nextOrder)
       .then(() => {
         showNotification('Column added');
       })

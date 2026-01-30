@@ -265,6 +265,7 @@ export const BoardProvider = ({ children }) => {
       const prefix = index < 26 ? alphabet[index] : `col${index}`;
       columnsObj[`${prefix}_${generateId()}`] = {
         title: columnTitle,
+        order: index,
         cards: {}
       };
     });
@@ -899,6 +900,64 @@ export const BoardProvider = ({ children }) => {
       });
   };
 
+  // Reorder a column by swapping its order with another column
+  const reorderColumn = (draggedColumnId, targetColumnId) => {
+    if (!boardId || !draggedColumnId || !targetColumnId || draggedColumnId === targetColumnId) {
+      return;
+    }
+
+    // Get current columns and their order
+    const columnEntries = Object.entries(columns || {});
+    const draggedIndex = columnEntries.findIndex(([id]) => id === draggedColumnId);
+    const targetIndex = columnEntries.findIndex(([id]) => id === targetColumnId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    // Create new order for all columns
+    const promises = [];
+    
+    // Determine the new order values
+    columnEntries.forEach(([columnId, columnData], index) => {
+      let newOrder;
+      
+      if (columnId === draggedColumnId) {
+        // Dragged column gets target's position
+        newOrder = targetIndex;
+      } else if (draggedIndex < targetIndex) {
+        // Moving right: shift columns between drag and target left
+        if (index > draggedIndex && index <= targetIndex) {
+          newOrder = index - 1;
+        } else {
+          newOrder = index;
+        }
+      } else {
+        // Moving left: shift columns between target and drag right
+        if (index >= targetIndex && index < draggedIndex) {
+          newOrder = index + 1;
+        } else {
+          newOrder = index;
+        }
+      }
+
+      // Update order in Firebase if it has changed
+      if ((columnData.order || 0) !== newOrder) {
+        const orderRef = ref(database, `boards/${boardId}/columns/${columnId}/order`);
+        promises.push(set(orderRef, newOrder));
+      }
+    });
+
+    return Promise.all(promises)
+      .then(() => {
+        console.log(`Column ${draggedColumnId} reordered to position of ${targetColumnId}`);
+      })
+      .catch(error => {
+        console.error('Error reordering columns:', error);
+        throw error;
+      });
+  };
+
   // Create a new group with selected cards
   const createCardGroup = (columnId, cardIds, groupName = 'New Group', targetCreatedTime = null) => {
     if (!boardId || !user || !cardIds.length) {
@@ -1191,6 +1250,7 @@ export const BoardProvider = ({ children }) => {
     createNewBoard,
     openExistingBoard,
     moveCard,
+    reorderColumn,
     resetAllVotes,
     getTotalVotes,
     getUserVoteCount,
