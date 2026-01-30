@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import Board from './Board';
+import { describe, it, expect, vi } from 'vitest';
 import { useBoardContext } from '../context/BoardContext';
+import Board from './Board';
 
 // Mock the board context
 vi.mock('../context/BoardContext');
@@ -48,6 +48,7 @@ describe('Board Component - Sort By Votes Fix', () => {
     getUserVoteCount: vi.fn().mockReturnValue(0),
     getTotalVotes: vi.fn().mockReturnValue(0),
     getTotalVotesRemaining: vi.fn().mockReturnValue(0),
+    getAllUsersAddingCards: vi.fn().mockReturnValue([]),
     user: { uid: 'test-user-123' },
     darkMode: false,
     updateDarkMode: vi.fn()

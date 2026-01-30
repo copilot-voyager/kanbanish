@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Helper functions for the Kanban application
  */
@@ -98,7 +100,9 @@ function generateEmojiList() {
   const additionalEmojis = [
     '❤️', '💔', '💯', '💪', '🙏', '👍', '👎', '👏', '🙌', '🤝',
     '👀', '🧠', '💡', '⚡', '✨', '⭐', '🏆', '🎉', '🚀', '🌈',
-    '✅', '❌', '❗', '❓', '⚠️', '🔥', '💰', '💎', '🎯', '🎪'
+    '✅', '❌', '❗', '❓', '⚠️', '🔥', '💰', '💎', '🎯', '🎪',
+    // Christmas emojis
+    '🎄', '🎅', '🤶', '🎁', '🔔', '🍪', '🎀', '🦌', '🛷', '🕯️'
   ];
 
   additionalEmojis.forEach(emoji => {
@@ -423,6 +427,18 @@ export function getEmojiKeywords(emoji) {
     '🎵': ['musical', 'note', 'music'],
     '🎶': ['musical', 'notes', 'music'],
     '🎼': ['musical', 'score', 'music'],
+    
+    // Christmas emojis
+    '🎄': ['christmas', 'tree', 'xmas', 'holiday', 'festive', 'pine', 'evergreen'],
+    '🎅': ['santa', 'claus', 'christmas', 'xmas', 'holiday', 'festive', 'father'],
+    '🤶': ['mrs', 'claus', 'christmas', 'xmas', 'holiday', 'festive', 'mother'],
+    '🎁': ['gift', 'present', 'wrapped', 'christmas', 'xmas', 'holiday', 'birthday'],
+    '🔔': ['bell', 'christmas', 'xmas', 'holiday', 'jingle', 'ring'],
+    '🍪': ['cookie', 'christmas', 'xmas', 'gingerbread', 'dessert', 'sweet', 'biscuit'],
+    '🎀': ['ribbon', 'bow', 'christmas', 'xmas', 'gift', 'present', 'decoration'],
+    '🦌': ['deer', 'reindeer', 'christmas', 'xmas', 'rudolph', 'holiday', 'animal'],
+    '🛷': ['sled', 'sleigh', 'christmas', 'xmas', 'winter', 'snow', 'holiday'],
+    '🕯️': ['candle', 'light', 'christmas', 'xmas', 'holiday', 'festive', 'flame'],
   };
 
   // Get keywords for the emoji, or try to extract from Unicode name
@@ -525,4 +541,43 @@ export function parseUrlSettings(queryString) {
   } catch {
     return { boardSettings: {}, uiPrefs: {} };
   }
+}
+
+// URL regex for detecting HTTP/HTTPS URLs
+const URL_REGEX = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&=/]*)/;
+
+/**
+ * Converts URLs in text to clickable links
+ * @param {string} text The text that may contain URLs
+ * @returns {React.ReactNode|React.ReactNode[]} Text with URLs converted to links
+ */
+export function linkifyText(text) {
+  if (!text || typeof text !== 'string') {
+    return text;
+  }
+
+  // Check if text contains any URLs
+  if (!URL_REGEX.test(text)) {
+    return text;
+  }
+
+  // Split using global capturing regex
+  const globalRegex = new RegExp(`(${URL_REGEX.source})`, 'g');
+  const parts = text.split(globalRegex);
+  
+  // Filter out empty strings that can occur from split
+  const filteredParts = parts.filter(part => part !== '');
+  
+  return filteredParts.map((part, index) => {
+    if (URL_REGEX.test(part)) {
+      return React.createElement('a', {
+        key: index,
+        href: part,
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        className: 'auto-link'
+      }, part);
+    }
+    return part;
+  });
 }

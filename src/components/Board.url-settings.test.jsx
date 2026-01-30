@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { vi, describe, test, beforeEach, afterEach, expect } from 'vitest';
-import { useBoardContext } from '../context/BoardContext';
+import { useBoardContext, DEFAULT_BOARD_TITLE } from '../context/BoardContext';
 import Board from './Board';
 
 vi.mock('../context/BoardContext');
@@ -24,7 +24,7 @@ describe('Board URL settings', () => {
   const baseCtx = {
     boardId: null,
     boardRef: null,
-    boardTitle: 'Untitled Board',
+    boardTitle: DEFAULT_BOARD_TITLE,
     setBoardTitle: vi.fn(),
     columns: {},
     sortByVotes: false,
@@ -44,7 +44,8 @@ describe('Board URL settings', () => {
     darkMode: true,
     updateDarkMode: vi.fn(),
     workflowPhase: 'CREATION',
-    user: { uid: 'u1' }
+    user: { uid: 'u1' },
+    getAllUsersAddingCards: vi.fn().mockReturnValue([])
   };
 
   const originalURLSearchParams = window.URLSearchParams;

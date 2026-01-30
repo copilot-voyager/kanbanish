@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { MessageSquare } from 'react-feather';
 import { useBoardContext } from '../context/BoardContext';
 import { useCardOperations } from '../hooks/useCardOperations';
 import {
@@ -16,6 +17,7 @@ import {
   WORKFLOW_PHASES
 } from '../utils/workflowUtils';
 // Import modularized components
+import CardHoverActions from './CardHoverActions';
 import CardReactions from './CardReactions';
 import Comments from './Comments';
 import VotingControls from './VotingControls';
@@ -58,7 +60,8 @@ const CardContent = ({
   groupId,
   workflowPhase = 'CREATION',
   user,
-  disabledReason
+  disabledReason,
+  children
 }) => {
   // Determine if we should show the downvote button:
   // 1. Always show if downvotingEnabled is true
@@ -114,6 +117,7 @@ const CardContent = ({
       <div className={`card-content ${!votingEnabled || groupId || !interactionsVisible || (retrospectiveMode && workflowPhase === 'CREATION' && user) ? 'full-width' : ''} ${showObfuscatedText ? 'obfuscated' : ''}`} data-testid="card-content">
         {displayContent}
       </div>
+      {children}
     </div>
   );
 };
@@ -353,7 +357,14 @@ function Card({
       ref={combinedRef}
       className={`card ${getDynamicClasses()}`}
       onClick={handleCardClick}
+      data-card-id={cardId}
     >
+      {/* Show comment indicator badge when card has comments */}
+      {!isEditing && !(retrospectiveMode && workflowPhase === 'CREATION' && user) && areInteractionsVisible(workflowPhase, retrospectiveMode) && !groupId && Object.keys(displayCardData.comments || {}).length > 0 && (
+        <div className="card-comment-indicator" title={`${Object.keys(displayCardData.comments || {}).length} comment${Object.keys(displayCardData.comments || {}).length === 1 ? '' : 's'}`}>
+          <MessageSquare size={12} />
+        </div>
+      )}
       {isEditing ? (
         <CardEditor
           editedContent={editedContent}
@@ -378,23 +389,32 @@ function Card({
             workflowPhase={workflowPhase}
             user={user}
             disabledReason={disabledReason}
-          />          {!(retrospectiveMode && workflowPhase === 'CREATION' && user) && areInteractionsVisible(workflowPhase, retrospectiveMode) && !groupId && (
+          >
+            {/* Show hover actions inside card-header when interactions are allowed and we're not in a group */}
+            {!(retrospectiveMode && workflowPhase === 'CREATION' && user) && areInteractionsVisible(workflowPhase, retrospectiveMode) && !groupId && (
+              <CardHoverActions
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+                setShowComments={setShowComments}
+                toggleComments={toggleComments}
+                setEmojiPickerPosition={setEmojiPickerPosition}
+                emojiPickerPosition={emojiPickerPosition}
+                addReaction={addReaction}
+                hasUserReactedWithEmoji={hasUserReactedWithEmoji}
+                commentCount={Object.keys(displayCardData.comments || {}).length}
+                disabled={!areInteractionsAllowed(workflowPhase, retrospectiveMode)}
+                disabledReason={disabledReason}
+              />
+            )}
+          </CardContent>
+          
+          {!(retrospectiveMode && workflowPhase === 'CREATION' && user) && areInteractionsVisible(workflowPhase, retrospectiveMode) && !groupId && (
             <CardReactions
               reactions={displayCardData.reactions}
               userId={user?.uid}
-              showEmojiPicker={showEmojiPicker}
-              setShowEmojiPicker={setShowEmojiPicker}
-              setShowComments={setShowComments}
               addReaction={addReaction}
-              hasUserReactedWithEmoji={hasUserReactedWithEmoji}
-              commentCount={Object.keys(displayCardData.comments || {}).length}
-              toggleComments={toggleComments}
-              emojiPickerPosition={emojiPickerPosition}
-              setEmojiPickerPosition={setEmojiPickerPosition}
               disabled={!areInteractionsAllowed(workflowPhase, retrospectiveMode)}
               disabledReason={disabledReason}
-              retrospectiveMode={retrospectiveMode}
-              workflowPhase={workflowPhase}
             />
           )}
 

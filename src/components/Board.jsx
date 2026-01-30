@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, ArrowDown, ChevronDown, Plus, ThumbsUp, FileText, PlusSquare, Settings, Sun, Moon } from 'react-feather';
-import { useBoardContext } from '../context/BoardContext';
+import { useBoardContext, DEFAULT_BOARD_TITLE } from '../context/BoardContext';
 import { addColumn } from '../utils/boardUtils';
 import { parseUrlSettings } from '../utils/helpers';
 import { WORKFLOW_PHASES } from '../utils/workflowUtils';
+import CardCreationIndicator from './CardCreationIndicator';
 import Column from './Column';
 import ExportBoardModal from './modals/ExportBoardModal';
 import NewBoardTemplateModal, { BOARD_TEMPLATES } from './modals/NewBoardTemplateModal';
@@ -22,7 +23,7 @@ const BoardHeader = ({ boardTitle, handleBoardTitleChange, handleBoardTitleBlur,
     <input
       type="text"
       id="board-title"
-      placeholder="Untitled Board"
+      placeholder={DEFAULT_BOARD_TITLE}
       value={boardTitle}
       onChange={handleBoardTitleChange}
       onBlur={handleBoardTitleBlur}
@@ -350,7 +351,8 @@ function Board({ showNotification }) {
     user, // Include user from context
     darkMode,
     updateDarkMode,
-    workflowPhase // Add workflow phase
+    workflowPhase, // Add workflow phase
+    getAllUsersAddingCards
   } = useBoardContext();
 
   // State for settings dropdown menu
@@ -400,7 +402,9 @@ function Board({ showNotification }) {
 
   // Update document title when board title changes
   useEffect(() => {
-    document.title = boardTitle ? `${boardTitle} - Kanbanish` : 'Kanbanish';
+    // Don't set document.title to "Untitled Board" for SEO purposes
+    // Keep the default HTML title instead when board is untitled
+    document.title = boardTitle && boardTitle !== DEFAULT_BOARD_TITLE ? `${boardTitle} - Kanbanish` : 'Kanbanish | Real-time anonymous kanban board';
   }, [boardTitle]);
 
   /**
@@ -426,7 +430,7 @@ function Board({ showNotification }) {
   // Create a new board with the selected template
   const handleTemplateSelected = (templateColumns, templateName = null) => {
     // Create a title based on the template
-    const boardTitle = templateName ? `${templateName} Board` : 'Untitled Board';
+    const boardTitle = templateName ? `${templateName} Board` : DEFAULT_BOARD_TITLE;
 
     // Pass URL-derived board settings so they persist on new board
   const parsed = parseUrlSettings(window.location.search);
@@ -548,6 +552,12 @@ function Board({ showNotification }) {
           />
         </div>
       </header>
+
+      {/* Global Card Creation Indicator */}
+      <CardCreationIndicator 
+        usersAddingCards={getAllUsersAddingCards()} 
+        currentUserId={user?.uid}
+      />
 
       {/* Workflow Controls - Only show when retrospective mode is enabled */}
       {retrospectiveMode && (
