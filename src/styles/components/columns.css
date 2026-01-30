@@ -431,6 +431,21 @@ main {
     }
 }
 
+/* Column drag and drop styles */
+.column.dragging {
+    opacity: 0.5;
+    cursor: move;
+}
+
+.column.drag-over-column {
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px var(--accent-transparent);
+}
+
+.column-header {
+    cursor: move;
+}
+
 /* Legacy styles for backwards compatibility - can be removed if not needed */
 .creation-activity {
     display: flex;

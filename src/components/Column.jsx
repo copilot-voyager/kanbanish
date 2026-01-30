@@ -1,6 +1,6 @@
 import { ref, set, remove } from 'firebase/database';
 import { useState, useRef, useEffect } from 'react';
-import { useDrop } from 'react-dnd';
+import { useDrop, useDrag } from 'react-dnd';
 import { Trash2, Plus } from 'react-feather';
 import { useBoardContext } from '../context/BoardContext';
 import { addCard } from '../utils/boardUtils';
@@ -19,7 +19,9 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
     workflowPhase, 
     columns,
     startCardCreation,
-    stopCardCreation
+    stopCardCreation,
+    getUsersAddingCardsInColumn,
+    reorderColumn
   } = useBoardContext();
   const [title, setTitle] = useState(columnData.title || 'New Column');
   const [isEditing, setIsEditing] = useState(false);
@@ -68,6 +70,34 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
       isOver: !!monitor.isOver()
     })
   }), [columnId, moveCard, showNotification]);
+
+  // Set up drag source for column reordering
+  const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
+    type: 'COLUMN',
+    item: { columnId, order: columnData.order || 0 },
+    collect: monitor => ({
+      isDragging: !!monitor.isDragging()
+    })
+  }), [columnId, columnData.order]);
+
+  // Set up drop target for column reordering
+  const [{ isOverColumn }, dropColumn] = useDrop(() => ({
+    accept: 'COLUMN',
+    drop: (item) => {
+      if (item.columnId !== columnId && reorderColumn) {
+        reorderColumn(item.columnId, columnId)
+          .then(() => {
+            showNotification('Column reordered');
+          })
+          .catch(() => {
+            showNotification('Failed to reorder column');
+          });
+      }
+    },
+    collect: monitor => ({
+      isOverColumn: !!monitor.isOver({ shallow: true })
+    })
+  }), [columnId, reorderColumn, showNotification]);
 
   // Apply the drop ref to column content
   drop(columnRef);
@@ -307,8 +337,17 @@ function Column({ columnId, columnData, sortByVotes, showNotification }) {
   };
 
   return (
-    <div className="column">
-      <div className="column-header">
+    <div 
+      ref={(node) => {
+        dragPreview(node);
+        dropColumn(node);
+      }}
+      className={`column ${isDragging ? 'dragging' : ''} ${isOverColumn ? 'drag-over-column' : ''}`}
+    >
+      <div 
+        ref={drag}
+        className="column-header"
+      >
         {isEditing ? (
           <input
             type="text"
