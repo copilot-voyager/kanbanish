@@ -10,7 +10,7 @@ A real-time collaborative kanban board. No accounts, no setup - just create a bo
 - ⚡ **Real-time sync** - everything updates instantly for all users
 - 🖱️ **Drag and drop** - move and reorder cards across columns
 - 📦 **Card grouping** - stack related cards together with expand/collapse
-- 🗳️ **Voting** - upvotes, downvotes, configurable limits, sort by votes
+- 🗳️ **Voting** - upvotes, downvotes, configurable limits, sort by votes; see your remaining votes during the retrospective voting phase
 - 💬 **Comments & reactions** - threaded comments and emoji reactions on any card
 - ⏱️ **Timers** - global, per-column, and per-card countdown timers
 - 🔍 **Search & filters** - filter by text, tags, color, votes, author, and more
