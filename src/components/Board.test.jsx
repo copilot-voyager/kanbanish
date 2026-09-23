@@ -152,6 +152,22 @@ describe('Board Component', () => {
     expect(screen.queryByText('Add Column')).not.toBeInTheDocument();
   });
 
+  test('shows the current voter their remaining votes in the board header', () => {
+    const getUserVoteCount = vi.fn().mockReturnValue(2);
+    useBoardContext.mockReturnValue({ ...mockContextValue, getUserVoteCount });
+
+    render(
+      <DndProvider backend={HTML5Backend}>
+        <Board />
+      </DndProvider>
+    );
+
+    const header = screen.getByRole('banner');
+    expect(header).toHaveTextContent('Your votes remaining:');
+    expect(header).toHaveTextContent('1/3');
+    expect(getUserVoteCount).toHaveBeenCalledWith('test-user-123');
+  });
+
   test('handles board title change correctly', () => {
     // Setup mock for local state
     const mockSetBoardTitle = vi.fn();

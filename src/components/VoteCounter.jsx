@@ -1,12 +1,13 @@
 import { useBoardContext } from '../context/BoardContext';
 import { useVoteCounterVisibility } from '../hooks/useVoteCounterVisibility';
+import { WORKFLOW_PHASES } from '../utils/workflowUtils';
 import BaseVoteCounter from './BaseVoteCounter';
 
 const VoteCounter = () => {
   const { isUserVoteCounterVisible } = useVoteCounterVisibility();
-  const { user, votesPerUser, getUserVoteCount } = useBoardContext();
+  const { user, votesPerUser, getUserVoteCount, workflowPhase } = useBoardContext();
 
-  if (!isUserVoteCounterVisible || votesPerUser === 0) {
+  if (!isUserVoteCounterVisible || workflowPhase !== WORKFLOW_PHASES.INTERACTIONS || votesPerUser === 0) {
     return null;
   }
 

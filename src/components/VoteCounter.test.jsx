@@ -116,4 +116,47 @@ describe('VoteCounter', () => {
 
     expect(screen.getByText('0/5')).toBeInTheDocument();
   });
+
+  it('updates when the current user casts or removes a vote', () => {
+    mockGetUserVoteCount.mockReturnValue(1);
+    const { rerender } = render(<VoteCounter />);
+    expect(screen.getByText('4/5')).toBeInTheDocument();
+    expect(mockGetUserVoteCount).toHaveBeenCalledWith('user123');
+
+    mockGetUserVoteCount.mockReturnValue(2);
+    rerender(<VoteCounter />);
+    expect(screen.getByText('3/5')).toBeInTheDocument();
+
+    mockGetUserVoteCount.mockReturnValue(1);
+    rerender(<VoteCounter />);
+    expect(screen.getByText('4/5')).toBeInTheDocument();
+  });
+
+  it('does not show a remaining count after voting ends', () => {
+    useBoardContext.mockReturnValue({
+      user: mockUser,
+      votesPerUser: 5,
+      getUserVoteCount: mockGetUserVoteCount,
+      workflowPhase: 'RESULTS',
+      retrospectiveMode: true,
+      votingEnabled: true
+    });
+
+    render(<VoteCounter />);
+    expect(screen.queryByText('Your votes remaining:')).not.toBeInTheDocument();
+  });
+
+  it('does not show a remaining count when votes are unlimited', () => {
+    useBoardContext.mockReturnValue({
+      user: mockUser,
+      votesPerUser: 0,
+      getUserVoteCount: mockGetUserVoteCount,
+      workflowPhase: 'INTERACTIONS',
+      retrospectiveMode: true,
+      votingEnabled: true
+    });
+
+    render(<VoteCounter />);
+    expect(screen.queryByText('Your votes remaining:')).not.toBeInTheDocument();
+  });
 });

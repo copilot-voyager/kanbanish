@@ -3,6 +3,7 @@ import { DEFAULT_BOARD_TITLE } from '../context/BoardContext';
 import BoardSeriesPager from './BoardSeriesPager';
 import TotalVoteCounter from './TotalVoteCounter';
 import UserCounter from './UserCounter';
+import VoteCounter from './VoteCounter';
 /**
  * Board header with title input, user/vote counters, and share/export buttons.
  *
@@ -62,6 +63,7 @@ const BoardHeader = ({ boardTitle, handleBoardTitleChange, handleBoardTitleBlur,
     )}
     <div className="action-buttons">
       <UserCounter />
+      <VoteCounter />
       <TotalVoteCounter />
     </div>
 
