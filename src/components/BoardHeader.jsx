@@ -12,6 +12,7 @@ import UserCounter from './UserCounter';
  * @param {Function} props.handleBoardTitleBlur - Called on title input blur (persists to Firebase)
  */
 const BoardHeader = ({ boardTitle, handleBoardTitleChange, handleBoardTitleBlur, onGoHome, onSearchOpen, isSearchOpen, onFocusModeEnter, previousBoardId, nextBoardId, onNavigateToBoard }) => (
+  <marquee />
   <div className="board-title-container">
     {onGoHome && (
       <button
